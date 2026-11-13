@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>화장품 ODM PM 컨트롤 타워</title>
+<style>
+:root{
+  --bg:#fff5f9; --card:#ffffff; --p1:#ffe4ef; --p2:#ffc2d9; --p3:#ff8fb8; --p4:#e75a92; --p5:#c2336f;
+  --text:#4a2535; --muted:#9a6b80; --line:#f6d3e1;
+  --yellow:#fff3b8; --yellow-b:#e8c200; --red:#ffd3d3; --red-b:#e53935;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+header{background:linear-gradient(90deg,var(--p3),var(--p4));color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{margin:0;font-size:18px}
+header .tools button{margin-left:6px}
+button{cursor:pointer;border:none;border-radius:20px;padding:7px 14px;font-weight:600;font-family:inherit;transition:.15s}
+.btn{background:var(--p4);color:#fff}
+.btn:hover{background:var(--p5)}
+.btn-light{background:#fff;color:var(--p5)}
+.btn-light:hover{background:var(--p1)}
+.btn-del{background:#fff;color:var(--p5);border:1px solid var(--p2);padding:4px 10px;font-size:12px}
+.btn-del:hover{background:var(--p1)}
+/* Dashboard */
+#dash{margin:14px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 2px 10px rgba(231,90,146,.08)}
+#dash h2{margin:0 0 4px;font-size:16px;color:var(--p5)}
+#dash .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
+#dashList{display:flex;gap:10px;flex-wrap:wrap}
+.alert-card{border-radius:12px;padding:10px 14px;min-width:230px;cursor:pointer;border:2px solid;position:relative}
+.alert-card.yellow{background:var(--yellow);border-color:var(--yellow-b)}
+.alert-card.red{background:var(--red);border-color:var(--red-b)}
+.alert-card .t{font-weight:700}
+.alert-card .s{font-size:12px;color:#5a3a49;margin-top:2px}
+.alert-card .d{position:absolute;right:10px;top:8px;font-weight:800;font-size:15px}
+.alert-card.yellow .d{color:#a17f00}
+.alert-card.red .d{color:var(--red-b)}
+.empty{color:var(--muted);padding:6px 0}
+/* Layout */
+.wrap{display:flex;gap:14px;padding:14px 16px;align-items:flex-start}
+nav{width:250px;flex-shrink:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;max-height:calc(100vh - 40px);overflow:auto;position:sticky;top:10px}
+nav .grp{font-size:12px;font-weight:800;color:var(--p4);margin:10px 6px 4px}
+nav button{display:flex;width:100%;text-align:left;background:transparent;color:var(--text);border-radius:10px;padding:8px 10px;margin:2px 0;justify-content:space-between;align-items:center}
+nav button:hover{background:var(--p1)}
+nav button.active{background:var(--p3);color:#fff}
+nav .no{display:inline-block;width:22px;font-weight:800;color:var(--p4)}
+nav button.active .no{color:#fff}
+.badge{background:var(--red-b);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px}
+.badge.y{background:var(--yellow-b)}
+main{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.mhead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.mhead h3{margin:0;color:var(--p5)}
+.mhead input[type=search]{border:1px solid var(--p2);border-radius:20px;padding:6px 12px;outline:none}
+.tablebox{overflow:auto;max-height:65vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:900px}
+th{position:sticky;top:0;background:var(--p1);color:var(--p5);padding:8px;font-size:12px;white-space:nowrap;border-bottom:2px solid var(--p2);z-index:1}
+td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.fixed{white-space:nowrap;background:#fff9fc;font-weight:600}
+td input[type=text],td input[type=date],td input[type=number],td select,td textarea{width:100%;min-width:120px;border:1px solid transparent;background:transparent;border-radius:8px;padding:5px 6px;font-family:inherit;font-size:13px;color:var(--text)}
+td textarea{min-width:180px;resize:vertical}
+td input:hover,td select:hover,td textarea:hover{border-color:var(--p2)}
+td input:focus,td select:focus,td textarea:focus{outline:none;border-color:var(--p3);background:#fff}
+td input[type=checkbox]{width:18px;height:18px;accent-color:var(--p4)}
+tr.warn-yellow td{background:var(--yellow)!important}
+tr.warn-red td{background:var(--red)!important}
+.dday{font-weight:800;text-align:center;white-space:nowrap}
+tr.warn-yellow .dday{color:#a17f00}
+tr.warn-red .dday{color:var(--red-b)}
+.empty-row{padding:30px;text-align:center;color:var(--muted)}
+/* Modal */
+#modal{display:none;position:fixed;inset:0;background:rgba(122,42,74,.35);align-items:center;justify-content:center;z-index:50}
+#modal.show{display:flex}
+.box{background:#fff;border-radius:18px;padding:22px;width:420px;max-width:92vw;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.box h3{margin:0 0 12px;color:var(--p5)}
+.box label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+.box input,.box select{width:100%;padding:9px 10px;border:1px solid var(--p2);border-radius:10px;font-family:inherit;font-size:14px;outline:none}
+.box input:focus,.box select:focus{border-color:var(--p4)}
+.box .row{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+@media(max-width:800px){.wrap{flex-direction:column}nav{width:100%;position:static;max-height:260px}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 화장품 ODM · PM 컨트롤 타워</h1>
+  <div class="tools">
+    <button class="btn-light" onclick="openModal()">＋ 신규 프로젝트</button>
+    <button class="btn-light" onclick="exportData()">백업 저장</button>
+    <button class="btn-light" onclick="document.getElementById('imp').click()">백업 불러오기</button>
+    <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+
+<section id="dash">
+  <h2>🔔 마스터 알림 대시보드</h2>
+  <div class="sub" id="dashSub"></div>
+  <div id="dashList"></div>
+</section>
+
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main>
+    <div class="mhead">
+      <h3 id="stageTitle"></h3>
+      <input type="search" id="q" placeholder="바이어/제품 검색" oninput="renderTable()">
+    </div>
+    <div class="tablebox"><table id="tbl"></table></div>
+  </main>
+</div>
+
+<div id="modal">
+  <div class="box">
+    <h3>신규 프로젝트 등록</h3>
+    <label>바이어명</label><input type="text" id="nBuyer" placeholder="예: ABC Cosmetics">
+    <label>제품명</label><input type="text" id="nProduct" placeholder="예: 비타 세럼 30ml">
+    <label>대분류</label>
+    <select id="nMajor" onchange="fillMinor()"><option value="">선택하세요</option><option>스킨케어</option><option>메이크업</option></select>
+    <label>소분류</label>
+    <select id="nMinor"><option value="">대분류를 먼저 선택하세요</option></select>
+    <div class="row">
+      <button class="btn-light" style="border:1px solid var(--p2)" onclick="closeModal()">취소</button>
+      <button class="btn" onclick="addProject()">등록</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 설정 ===== */
+const KEY = 'pm_control_tower_pink_v1';
+const CATS = {
+  '스킨케어': ['토너/스킨','세럼/앰플','로션/크림','클렌저','선케어','마스크팩'],
+  '메이크업': ['파운데이션/쿠션','컨실러','립(틴트/오일/스틱)','아이섀도우(팔레트/싱글)','블러셔/하이라이터','마스카라/아이라이너']
+};
+const F = (k,l,t='text',o)=>({k,l,t,o});
+const STAGES = [
+ {id:1,g:'영업 및 수주 셋업',n:'고객사 컨택',f:[F('meet','미팅일','date'),F('talk','논의 내용','area'),F('nego','협상 상태 (예: T/T 50일 조건 조율)','area')]},
+ {id:2,g:'영업 및 수주 셋업',n:'샘플 의뢰',f:[F('reqDate','의뢰서 작성일','date'),F('bl','블랙리스트(BL) 체크','select',['미확인','확인 완료 - 이상 없음','BL 해당 - 확인 필요']),F('sample','샘플 수령/전달일','date')]},
+ {id:3,g:'영업 및 수주 셋업',n:'샘플 BULK FIX 및 계약 체결',f:[F('texture','픽스된 텍스처'),F('terms','최종 계약 조건','area'),F('done','계약 완료일','date')]},
+ {id:4,g:'영업 및 수주 셋업',n:'BULK 코드 생성',f:[F('form','타겟 제형'),F('bulk','벌크 코드명')]},
+ {id:5,g:'PM 서류 및 시스템 세팅',n:'CT 요청',f:[F('cap','용기 용량'),F('mat','용기 재질'),F('ct','CT 의뢰서 전송일','date'),F('res','결과서 공유일','date'),F('st','안정도(ST) 체크 요청일','date')]},
+ {id:6,g:'PM 서류 및 시스템 세팅',n:'문안 검수',f:[F('lab','확정 랩넘버'),F('inci','최종 전성분(INCI)','area'),F('req','문안 검토 의뢰일','date'),F('fin','QA/고객사 최종 확정일','date')]},
+ {id:7,g:'PM 서류 및 시스템 세팅',n:'견적서 작성',f:[F('estReq','내용물 견적 요청일','date'),F('price','BULK 단가','number'),F('sub','부자재 사양','area'),F('vol','용량'),F('moq','MOQ 설정액')]},
+ {id:8,g:'PM 서류 및 시스템 세팅',n:'PM 차트 작성',f:[F('fg','완제품 코드'),F('sf','반제품 코드'),F('mt','자재 코드'),F('bom','BOM 구성 완료','check'),F('rev','현재 리비전','select',['R0','R1','R2','R3','R4','R5']),F('revHist','리비전 히스토리 (R1, R2…)','area')]},
+ {id:9,g:'PM 서류 및 시스템 세팅',n:'신규 코드 채번',f:[F('ieDate','IE팀 코드 발급일','date'),F('code','발급 코드 번호')]},
+ {id:10,g:'PM 서류 및 시스템 세팅',n:'견적 기안 상신',f:[F('draft','기안 상신일','date'),F('appr','결재 상태','select',['대기','승인','반려']),F('note','특이사항','area')]},
+ {id:11,g:'PM 서류 및 시스템 세팅',n:'수주 접수',dl:'eta',dlLabel:'예상 최종 납기일',f:[F('start','프로젝트 시작일','date'),F('po','PO번호'),F('qty','수주 수량','number'),F('eta','예상 최종 납기일 ⏰','date')]},
+ {id:12,g:'트래킹 및 출고',n:'피그먼트(제조) PT',f:[F('pt','PT 일정','date'),F('lab','연구소 컨펌','select',['대기','컨펌 완료','재작업'])]},
+ {id:13,g:'트래킹 및 출고',n:'생판제',f:[F('sop','S&OP 회의 반영','check'),F('week','배차 예정 주차 (예: 12월 2주)'),F('mbo','생판제 파일 등록','check')]},
+ {id:14,g:'트래킹 및 출고',n:'원료 관리',f:[F('raw','주요 수입 원료명'),F('buy','구매팀 발주 확인','check'),F('eta','입고 예정일','date')]},
+ {id:15,g:'트래킹 및 출고',n:'부자재 관리',f:[F('item','품목명 (용기/단상자/게토바시 등)'),F('lt','L/T (리드타임, 일)','number'),F('fin','최종 입고 확정일','date'),F('logi','물류팀 사전 공유','check')]},
+ {id:16,g:'트래킹 및 출고',n:'제조(본제조)',f:[F('s','내용물 제조 시작일','date'),F('e','내용물 제조 완료일','date')]},
+ {id:17,g:'트래킹 및 출고',n:'생산(총포장, 본생산)',f:[F('line','라인 투입일','date'),F('pack','총포장 완료일','date'),F('real','실제 생산 수량','number')]},
+ {id:18,g:'트래킹 및 출고',n:'출고',dl:'target',dlLabel:'목표 최종 납기일',f:[F('ship','출하 건명'),F('subIn','부자재 입고일','date'),F('pay','입금 확인 날짜','date'),F('qa','QA/QC 통과 여부','select',['대기','통과','불합격']),F('target','목표 최종 납기일 ⏰','date'),F('cipl','CIPL 최종 검수 완료','check'),F('out','출고날짜','date')]},
+ {id:19,g:'트래킹 및 출고',n:'마감',f:[F('rev','매출 인식일','date'),F('closed','여신/수금 최종 마감 완료','check')]}
+];
+
+/* ===== 데이터 ===== */
+let db = load();
+let cur = 1;
+function load(){
+  try{ const d=JSON.parse(localStorage.getItem(KEY)); if(d&&d.projects) return d; }catch(e){}
+  return {projects:[],data:{}};
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
+function rec(stage,pid){ db.data[stage]=db.data[stage]||{}; db.data[stage][pid]=db.data[stage][pid]||{}; return db.data[stage][pid]; }
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function stageById(id){ return STAGES.find(s=>s.id===id); }
+
+/* ===== 날짜/알림 로직 ===== */
+function daysLeft(str){
+  const [y,m,d]=str.split('-').map(Number);
+  const t=new Date(); const a=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  return Math.round((new Date(y,m-1,d)-a)/86400000);
+}
+function level(days){ if(days<=3) return 'red'; if(days<=7) return 'yellow'; return ''; }
+function ddayText(days){ return days===0?'D-DAY':(days>0?'D-'+days:'D+'+(-days)+' 초과'); }
+function isClosed(pid){ return !!(db.data[19]&&db.data[19][pid]&&db.data[19][pid].closed); }
+function getAlerts(){
+  const list=[];
+  STAGES.filter(s=>s.dl).forEach(s=>{
+    db.projects.forEach(p=>{
+      if(isClosed(p.id)) return;
+      const v=(db.data[s.id]&&db.data[s.id][p.id]||{})[s.dl];
+      if(!v) return;
+      const days=daysLeft(v);
+      if(days<=7) list.push({pid:p.id,p,stage:s,date:v,days,lv:level(days)});
+    });
+  });
+  return list.sort((a,b)=>a.days-b.days);
+}
+
+/* ===== 렌더링 ===== */
+function renderNav(){
+  const al=getAlerts(); let html='',g='';
+  STAGES.forEach(s=>{
+    if(s.g!==g){ g=s.g; html+=`<div class="grp">■ ${g}</div>`; }
+    const cnt=al.filter(a=>a.stage.id===s.id);
+    const red=cnt.filter(a=>a.lv==='red').length;
+    let b=''; if(cnt.length) b=`<span class="badge ${red?'':'y'}">${cnt.length}</span>`;
+    html+=`<button class="${s.id===cur?'active':''}" onclick="go(${s.id})"><span><span class="no">${s.id}</span>${s.n}</span>${b}</button>`;
+  });
+  document.getElementById('nav').innerHTML=html;
+}
+function renderDash(){
+  const al=getAlerts(), box=document.getElementById('dashList');
+  const r=al.filter(a=>a.lv==='red').length, y=al.length-r;
+  document.getElementById('dashSub').innerHTML=
+    `오늘 기준 ${new Date().toLocaleDateString('ko-KR')} · 🔴 3일 이내/기한 초과 <b>${r}</b>건 · 🟡 7일 이내 <b>${y}</b>건 (11번 수주 접수 / 18번 출고 납기일 기준)`;
+  if(!al.length){ box.innerHTML='<div class="empty">✨ 임박한 납기 프로젝트가 없습니다.</div>'; return; }
+  box.innerHTML=al.map(a=>`
+    <div class="alert-card ${a.lv}" onclick="go(${a.stage.id})">
+      <span class="d">${ddayText(a.days)}</span>
+      <div class="t">${esc(a.p.buyer)} · ${esc(a.p.product)}</div>
+      <div class="s">${a.stage.id}. ${a.stage.n} → ${a.stage.dlLabel}: ${a.date}</div>
+    </div>`).join('');
+}
+function renderTable(){
+  const s=stageById(cur), q=document.getElementById('q').value.trim().toLowerCase();
+  document.getElementById('stageTitle').textContent=`${s.id}. ${s.n}`;
+  let head='<tr><th>바이어명</th><th>제품명</th><th>대분류 / 소분류</th>';
+  s.f.forEach(f=>head+=`<th>${f.l}</th>`);
+  if(s.dl) head+='<th>D-Day</th>';
+  head+='<th>삭제</th></tr>';
+  const rows=db.projects.filter(p=>!q||(p.buyer+p.product).toLowerCase().includes(q));
+  let body='';
+  if(!rows.length) body=`<tr><td class="empty-row" colspan="${s.f.length+5}">등록된 프로젝트가 없습니다. 상단의 [＋ 신규 프로젝트] 버튼으로 추가하세요.</td></tr>`;
+  rows.forEach(p=>{
+    const r=(db.data[s.id]&&db.data[s.id][p.id])||{};
+    let cls='',dd='';
+    if(s.dl&&r[s.dl]){ const d=daysLeft(r[s.dl]); const lv=level(d); if(lv) cls='warn-'+lv; dd=ddayText(d); }
+    body+=`<tr data-pid="${p.id}" class="${cls}">
+      <td class="fixed">${esc(p.buyer)}</td><td class="fixed">${esc(p.product)}</td><td class="fixed">${esc(p.major)} / ${esc(p.minor)}</td>`;
+    s.f.forEach(f=>{ body+=`<td>${cell(f,r[f.k])}</td>`; });
+    if(s.dl) body+=`<td class="dday">${dd}</td>`;
+    body+=`<td><button class="btn-del" onclick="delProject('${p.id}')">프로젝트 삭제</button></td></tr>`;
+  });
+  document.getElementById('tbl').innerHTML=`<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+function cell(f,v){
+  const a=`data-k="${f.k}"`;
+  if(f.t==='select') return `<select ${a}><option value=""></option>${f.o.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
+  if(f.t==='check') return `<input type="checkbox" ${a} ${v?'checked':''}>`;
+  if(f.t==='area') return `<textarea ${a} rows="2">${esc(v||'')}</textarea>`;
+  return `<input type="${f.t}" ${a} value="${esc(v||'')}">`;
+}
+function refreshAll(){ renderNav(); renderDash(); }
+function go(id){ cur=id; renderNav(); renderTable(); }
+
+/* ===== 입력 저장 + 조건부 서식 실시간 반영 ===== */
+document.querySelector('main').addEventListener('input',e=>{
+  const el=e.target, k=el.dataset.k; if(!k) return;
+  const tr=el.closest('tr'), pid=tr.dataset.pid, s=stageById(cur);
+  rec(cur,pid)[k]= el.type==='checkbox'? el.checked : el.value;
+  save();
+  if(s.dl && k===s.dl){
+    tr.classList.remove('warn-yellow','warn-red');
+    const cellD=tr.querySelector('.dday');
+    if(el.value){ const d=daysLeft(el.value), lv=level(d); if(lv) tr.classList.add('warn-'+lv); cellD.textContent=ddayText(d); }
+    else cellD.textContent='';
+  }
+  if(cur===19 && k==='closed' || (s.dl&&k===s.dl)) refreshAll();
+});
+
+/* ===== 신규 프로젝트 ===== */
+function openModal(){ document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+function fillMinor(){
+  const m=document.getElementById('nMajor').value, sel=document.getElementById('nMinor');
+  sel.innerHTML = m ? '<option value="">소분류 선택</option>'+CATS[m].map(c=>`<option>${c}</option>`).join('') : '<option value="">대분류를 먼저 선택하세요</option>';
+}
+function addProject(){
+  const buyer=nBuyer.value.trim(), product=nProduct.value.trim(), major=nMajor.value, minor=nMinor.value;
+  if(!buyer||!product||!major||!minor){ alert('바이어명, 제품명, 대분류, 소분류를 모두 입력/선택해 주세요.'); return; }
+  db.projects.push({id:'p'+Date.now(),buyer,product,major,minor});
+  save(); nBuyer.value=''; nProduct.value=''; nMajor.value=''; fillMinor(); closeModal();
+  renderTable(); refreshAll();
+}
+function delProject(pid){
+  const p=db.projects.find(x=>x.id===pid);
+  if(!confirm(`[${p.buyer} / ${p.product}] 프로젝트를 19개 단계 전체에서 삭제할까요?\n(되돌릴 수 없습니다)`)) return;
+  db.projects=db.projects.filter(x=>x.id!==pid);
+  Object.keys(db.data).forEach(s=>delete db.data[s][pid]);
+  save(); renderTable(); refreshAll();
+}
+
+/* ===== 백업 ===== */
+function exportData(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));
+  a.download='pm_backup_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+}
+function importData(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.projects) throw 0; db=d; save(); renderTable(); refreshAll(); alert('불러오기 완료'); }catch(e){ alert('올바른 백업 파일이 아닙니다.'); } };
+  r.readAsText(f); ev.target.value='';
+}
+
+/* ===== 시작 ===== */
+renderNav(); renderDash(); renderTable();
+setInterval(()=>{ refreshAll(); renderTable(); }, 3600000); // 날짜가 바뀌면 자동 갱신(1시간마다)
+</script>
+</body>
+</html>
